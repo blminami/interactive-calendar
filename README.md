@@ -5,7 +5,7 @@ React application that uses Microsoft Graph API to access Outlook and OneDrive d
 - Use Microsoft Graph API to access Outlook data
 - Interactive calendar that displays the events from Outlook and allows user to manage events, meetings, etc. within the application
 
-### Run Application Locally
+#### Run Application Locally
 
 1. Clone this repo
 
@@ -25,3 +25,10 @@ React application that uses Microsoft Graph API to access Outlook and OneDrive d
 ```sh
   npm start
 ```
+
+#### Tech Stack
+
+- React
+- Web Components
+- Finastra Design System
+- Microsoft Graph API
