@@ -1,0 +1,8 @@
+@use '@finastra/fds-theme';
+@use '@finastra/fds-theme/light';
+
+.alert-pre {
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
