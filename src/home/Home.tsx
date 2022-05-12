@@ -21,11 +21,7 @@ export default class Home extends React.Component<HomeProps> {
     }
     return (
       <div>
-        <p>
-          This sample app shows how to use the Microsoft Graph API to access
-          Outlook and OneDrive data from React. Sign In for accessing your
-          calendar's events.
-        </p>
+        <p>Sign In for accessing your calendar's events.</p>
       </div>
     );
   }
