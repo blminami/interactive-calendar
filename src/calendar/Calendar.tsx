@@ -1,160 +1,152 @@
 import React from 'react';
-import { NavLink as RouterNavLink } from 'react-router-dom';
-import { Table } from 'reactstrap';
 import moment, { Moment } from 'moment-timezone';
-import { findIana } from 'windows-iana';
 import { Event } from 'microsoft-graph';
 import { config } from '../Config';
 import { getUserWeekCalendar } from '../services/GraphService';
 import withAuthProvider, { AuthComponentProps } from '../services/AuthProvider';
-import CalendarDayRow from './CalendarDayRow';
 import './Calendar.scss';
 
 interface CalendarState {
   eventsLoaded: boolean;
   events: Event[];
   startOfWeek: Moment | undefined;
+  startOfMonth: Moment | undefined;
+  type: 'weekly' | 'monthly';
 }
 
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
   constructor(props: any) {
     super(props);
 
+    this.nextMonth = this.nextMonth.bind(this);
+
     this.state = {
       eventsLoaded: false,
       events: [],
-      startOfWeek: undefined
+      startOfWeek: undefined,
+      startOfMonth: undefined,
+      type: 'weekly'
     };
   }
 
   async componentDidUpdate() {
     if (this.props.user && !this.state.eventsLoaded) {
       try {
-        // Get the user's access token
-        var accessToken = await this.props.getAccessToken(config.scopes);
+        const monthlyEvents = await this.getUserEvents(this.getDate('month'));
 
-        // Convert user's Windows time zone ("Pacific Standard Time")
-        // to IANA format ("America/Los_Angeles")
-        // Moment needs IANA format
-        var ianaTimeZones = findIana(this.props.user.timeZone);
-
-        // Get midnight on the start of the current week in the user's timezone,
-        // but in UTC. For example, for Pacific Standard Time, the time value would be
-        // 07:00:00Z
-        var startOfWeek = moment
-          .tz(ianaTimeZones![0].valueOf())
-          .startOf('week')
-          .utc();
-
-        // Get the user's events
-        var events = await getUserWeekCalendar(
-          accessToken,
-          this.props.user.timeZone,
-          startOfWeek
-        );
-
-        // Update the array of events in state
         this.setState({
           eventsLoaded: true,
-          events: events,
-          startOfWeek: startOfWeek
+          events: monthlyEvents,
+          startOfWeek: this.getDate('week'),
+          startOfMonth: this.getDate('month')
         });
+
+        this.getCalendar();
       } catch (err) {
         this.props.setError('ERROR', JSON.stringify(err));
       }
     }
   }
 
-  render() {
-    var sunday = moment(this.state.startOfWeek);
-    var monday = moment(sunday).add(1, 'day');
-    var tuesday = moment(monday).add(1, 'day');
-    var wednesday = moment(tuesday).add(1, 'day');
-    var thursday = moment(wednesday).add(1, 'day');
-    var friday = moment(thursday).add(1, 'day');
-    var saturday = moment(friday).add(1, 'day');
+  async getUserEvents(date: Moment) {
+    const accessToken = await this.props.getAccessToken(config.scopes);
+    const events = await getUserWeekCalendar(
+      accessToken,
+      this.props.user.timeZone,
+      date.clone().utc()
+    );
 
+    return events;
+  }
+
+  getDate(type: 'week' | 'month') {
+    let date;
+    switch (type) {
+      case 'week':
+        date = moment().clone().startOf('week');
+        break;
+      case 'month':
+        date = moment().clone().startOf('month');
+        break;
+    }
+
+    return date;
+  }
+
+  getCalendar() {
+    const currentMonth = this.state.startOfMonth;
+    if (!currentMonth) {
+      return;
+    }
+    const daysInCurrentMonth = this.createDaysForCurrentMonth(currentMonth);
+    // console.log('daysInCurrentMonth', daysInCurrentMonth);
+
+    const daysInPreviousMonth = this.createDaysForPreviousMonth(currentMonth);
+    // console.log('daysInPreviousMonth', daysInPreviousMonth);
+
+    const daysInNextMonth = this.createDaysForNextMonth(currentMonth);
+    // console.log('daysInNextMonth', daysInNextMonth);
+
+    const days = [
+      ...daysInPreviousMonth,
+      ...daysInCurrentMonth,
+      ...daysInNextMonth
+    ];
+
+    console.log('days: ', days);
+  }
+
+  createDaysForCurrentMonth(date: Moment) {
+    return [
+      ...Array.from({ length: date.daysInMonth() }, (_, index) => {
+        return date.clone().add(index, 'days').format('DD');
+      })
+    ];
+  }
+
+  createDaysForNextMonth(date: Moment) {
+    const lastDayOfTheMonth = date.clone().endOf('month');
+    const lastDayOfTheMonthWeekday = lastDayOfTheMonth.weekday();
+
+    const visibleNumberOfDaysFromNextMonth = 6 - lastDayOfTheMonthWeekday;
+
+    return [...Array(visibleNumberOfDaysFromNextMonth)].map((_, index) => {
+      return lastDayOfTheMonth
+        .clone()
+        .add(index + 1, 'day')
+        .format('DD');
+    });
+  }
+
+  createDaysForPreviousMonth(date: Moment) {
+    const firstDayOfTheMonthWeekday = date.weekday();
+
+    return [...Array(firstDayOfTheMonthWeekday)]
+      .map((_, index) => {
+        return date
+          .clone()
+          .subtract(index + 1, 'day')
+          .format('DD');
+      })
+      .reverse();
+  }
+
+  nextMonth() {
+    const nextMonth = this.state.startOfMonth?.clone().add(1, 'months');
+    this.setState(
+      {
+        startOfMonth: nextMonth
+      },
+      () => {
+        this.getCalendar();
+      }
+    );
+  }
+
+  render() {
     return (
-      <div>
-        <div className='mb-3'>
-          <h1 className='mb-3'>
-            {sunday.format('MMMM D, YYYY')} - {saturday.format('MMMM D, YYYY')}
-          </h1>
-          <RouterNavLink to='/newevent' className='btn btn-light btn-sm' exact>
-            New event
-          </RouterNavLink>
-        </div>
-        <div className='calendar-week'>
-          <div className='table-responsive'>
-            <Table size='sm'>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Event</th>
-                </tr>
-              </thead>
-              <tbody>
-                <CalendarDayRow
-                  date={sunday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === sunday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={monday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === monday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={tuesday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === tuesday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={wednesday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === wednesday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={thursday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === thursday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={friday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === friday.day()
-                  )}
-                />
-                <CalendarDayRow
-                  date={saturday}
-                  timeFormat={this.props.user.timeFormat}
-                  events={this.state.events.filter(
-                    (event) =>
-                      moment(event.start?.dateTime).day() === saturday.day()
-                  )}
-                />
-              </tbody>
-            </Table>
-          </div>
-        </div>
+      <div className='calendar'>
+        <fds-button label='Next' onClick={this.nextMonth}></fds-button>
       </div>
     );
   }

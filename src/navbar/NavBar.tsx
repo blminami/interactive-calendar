@@ -29,23 +29,13 @@ const UserAvatar = (props: any) => {
 };
 
 const NavbarActions = (props: any) => {
-  if (props.isAuthenticated) {
-    return (
-      <fds-button
-        label='Logout'
-        slot='actions'
-        onClick={props.handleAuthAction}
-      ></fds-button>
-    );
-  } else {
-    return (
-      <fds-button
-        label='Sign in'
-        slot='actions'
-        onClick={props.handleAuthAction}
-      ></fds-button>
-    );
-  }
+  return (
+    <fds-button
+      label={props.isAuthenticated ? 'Logout' : 'Sign in'}
+      slot='actions'
+      onClick={props.handleAuthAction}
+    ></fds-button>
+  );
 };
 
 const NavigationItem = (props: any) => {
@@ -74,10 +64,6 @@ const NavigationItem = (props: any) => {
 };
 
 export default class NavBar extends React.Component<NavBarProps> {
-  constructor(props: NavBarProps) {
-    super(props);
-  }
-
   render(): JSX.Element {
     return (
       <Router>
