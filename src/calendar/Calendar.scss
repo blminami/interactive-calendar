@@ -1,26 +1,88 @@
-.calendar-view-date-cell {
-  width: 150px;
+@use '@finastra/fds-theme' as fds;
+@use '@finastra/fds-theme/helpers';
+
+.calendar-wrapper {
+  width: 400px;
+  margin: auto;
 }
 
-.calendar-view-date {
-  width: 40px;
-  font-size: 36px;
-  line-height: 36px;
-  margin-right: 10px;
+.calendar {
+  padding: var(--fds-spacing-3);
+  background-color: #2a1a6a;
+  color: var(--fds-on-primary);
+  border-radius: 6px;
 }
 
-.calendar-view-month {
-  font-size: 0.75em;
+.calendar-header {
+  display: flex;
+  align-items: center;
+  .month {
+    margin-right: var(--fds-spacing-1);
+    // secondary / 200
+    color: #f66cd4;
+  }
+
+  .header-action {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    // primary / 300
+    color: #b4a6ea;
+
+    mwc-icon-button .mdc-icon-button {
+      padding: 0 !important;
+      height: 24px;
+      width: 48px;
+    }
+  }
 }
 
-.calendar-view-timespan {
-  width: 200px;
+.calendar-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  list-style: none;
+  padding: 0 var(--fds-spacing-2);
+  grid-gap: 1.5em;
+
+  li {
+    @include fds.typography(body-2);
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: var(--fds-spacing-1);
+
+    &.next,
+    &.previous {
+      // primary / 300
+      color: #6a5f97;
+      @include fds.typography(subtitle-2);
+    }
+
+    &.today {
+      @include fds.typography(subtitle-2);
+      background-color: var(--fds-secondary);
+      border-radius: 50%;
+      width: 20px;
+    }
+  }
+
+  .day-name {
+    // color: var(--fds-primary);
+    // opacity: var(--fds-track-opacity, 0.95);
+    // primary / 400
+    color: #917ee0;
+    @include fds.typography(subtitle-1);
+  }
 }
 
-.calendar-view-subject {
-  font-size: 1.25em;
-}
+.calendar-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-3);
 
-.calendar-view-organizer {
-  font-size: .75em;
+  fds-button {
+    padding: 0;
+  }
 }
