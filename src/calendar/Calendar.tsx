@@ -68,17 +68,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
   }
 
   getDate(type: 'week' | 'month') {
-    let date;
-    switch (type) {
-      case 'week':
-        date = moment().clone().startOf('week');
-        break;
-      case 'month':
-        date = moment().clone().startOf('month');
-        break;
-    }
-
-    return date;
+    return moment().clone().startOf(type);
   }
 
   getCalendar() {
