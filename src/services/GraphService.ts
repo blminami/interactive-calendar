@@ -36,13 +36,13 @@ export async function getUserCalendar(
   accessToken: string,
   timeZone: string,
   startDate: Moment,
-  type: 'weekly' | 'monthly'
+  type: 'week' | 'month'
 ): Promise<Event[]> {
   const client = getAuthenticatedClient(accessToken);
 
   const startDateTime = startDate.format();
   let endDateTime;
-  if (type === 'monthly') {
+  if (type === 'month') {
     endDateTime = moment(startDate).add(1, 'month').format();
   } else {
     endDateTime = moment(startDate).add(7, 'day').format();

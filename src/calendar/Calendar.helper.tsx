@@ -63,3 +63,13 @@ export function createDaysForPreviousMonth(date: Moment) {
     })
     .reverse();
 }
+
+export function createDaysForCurrentWeek(date: Moment) {
+  return [...Array(7)].map((_, index) => {
+    return {
+      day: date.clone().add(index, 'day').format('D'),
+      date: date.clone().add(index, 'day'),
+      month: 'current'
+    };
+  });
+}

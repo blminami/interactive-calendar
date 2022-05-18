@@ -11,6 +11,8 @@
   background-color: #2a1a6a;
   color: var(--fds-on-primary);
   border-radius: 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-header {
@@ -90,6 +92,10 @@
     color: #917ee0;
     @include fds.typography(subtitle-1);
   }
+}
+
+.arrow-icon {
+  margin: auto;
 }
 
 .calendar-actions {
