@@ -1,9 +1,20 @@
-import { Moment } from 'moment-timezone';
+import moment, { Moment } from 'moment-timezone';
 
 export interface MonthItem {
   day: string;
   month: string;
   date: Moment;
+}
+
+export function getDate(type: 'week' | 'month') {
+  return moment().clone().startOf(type);
+}
+
+export function isSameDate(date1: Moment, date2: Moment) {
+  return (
+    date1.format('D') === date2.format('D') &&
+    date1.format('MM') === date2.format('MM')
+  );
 }
 
 export function createDaysForCurrentMonth(date: Moment) {

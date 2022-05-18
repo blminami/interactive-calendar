@@ -32,46 +32,51 @@ export async function getUserDetails(accessToken: string) {
   return user;
 }
 
-export async function getUserWeekCalendar(
+export async function getUserCalendar(
   accessToken: string,
   timeZone: string,
-  startDate: Moment
+  startDate: Moment,
+  type: 'weekly' | 'monthly'
 ): Promise<Event[]> {
   const client = getAuthenticatedClient(accessToken);
 
-  // Generate startDateTime and endDateTime query params
-  // to display a 7-day window
-  var startDateTime = startDate.format();
-  var endDateTime = moment(startDate).add(7, 'day').format();
+  const startDateTime = startDate.format();
+  let endDateTime;
+  if (type === 'monthly') {
+    endDateTime = moment(startDate).add(1, 'month').format();
+  } else {
+    endDateTime = moment(startDate).add(7, 'day').format();
+  }
 
   // GET /me/calendarview?startDateTime=''&endDateTime=''
   // &$select=subject,organizer,start,end
   // &$orderby=start/dateTime
   // &$top=50
-  var response: PageCollection = await client
+  const response: PageCollection = await client
     .api('/me/calendarview')
     .header('Prefer', `outlook.timezone="${timeZone}"`)
     .query({ startDateTime: startDateTime, endDateTime: endDateTime })
     .select('subject,organizer,start,end')
     .orderby('start/dateTime')
-    .top(25)
+    .top(50)
     .get();
 
   if (response['@odata.nextLink']) {
     // Presence of the nextLink property indicates more results are available
     // Use a page iterator to get all results
-    var events: Event[] = [];
+    const events: Event[] = [];
 
     // Must include the time zone header in page
     // requests too
-    var options: GraphRequestOptions = {
+    const options: GraphRequestOptions = {
       headers: { Prefer: `outlook.timezone="${timeZone}"` }
     };
 
-    var pageIterator = new PageIterator(
+    const pageIterator = new PageIterator(
       client,
       response,
       (event) => {
+        event.date = moment(event.start.dateTime);
         events.push(event);
         return true;
       },
@@ -82,6 +87,13 @@ export async function getUserWeekCalendar(
 
     return events;
   } else {
+    response.value.map((event) => {
+      event.date = {
+        start: moment(event.start.dateTime),
+        end: moment(event.end.dateTime)
+      };
+      return event;
+    });
     return response.value;
   }
 }

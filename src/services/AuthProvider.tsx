@@ -128,7 +128,6 @@ export default function withAuthProvider<
       }
     }
 
-    // <getUserProfileSnippet>
     async getUserProfile() {
       try {
         var accessToken = await this.getAccessToken(config.scopes);
@@ -155,7 +154,6 @@ export default function withAuthProvider<
         });
       }
     }
-    // </getUserProfileSnippet>
 
     setErrorMessage(message: string, debug: string) {
       this.setState({

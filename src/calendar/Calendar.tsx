@@ -2,13 +2,15 @@ import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { Event } from 'microsoft-graph';
 import { config } from '../Config';
-import { getUserWeekCalendar } from '../services/GraphService';
+import { getUserCalendar } from '../services/GraphService';
 import withAuthProvider, { AuthComponentProps } from '../services/AuthProvider';
 import './Calendar.scss';
 import {
   createDaysForCurrentMonth,
   createDaysForNextMonth,
   createDaysForPreviousMonth,
+  getDate,
+  isSameDate,
   MonthItem
 } from './Calendar.helper';
 
@@ -33,20 +35,20 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       startOfWeek: undefined,
       startOfMonth: undefined,
       days: [],
-      type: 'weekly'
+      type: 'monthly'
     };
   }
 
   async componentDidUpdate() {
     if (this.props.user && !this.state.eventsLoaded) {
       try {
-        const monthlyEvents = await this.getUserEvents(this.getDate('month'));
+        const events = await this.getUserEvents(getDate('month'));
 
         this.setState({
           eventsLoaded: true,
-          events: monthlyEvents,
-          startOfWeek: this.getDate('week'),
-          startOfMonth: this.getDate('month')
+          events: events,
+          startOfWeek: getDate('week'),
+          startOfMonth: getDate('month')
         });
 
         this.getCalendar();
@@ -58,17 +60,13 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
 
   async getUserEvents(date: Moment) {
     const accessToken = await this.props.getAccessToken(config.scopes);
-    const events = await getUserWeekCalendar(
+    const events = await getUserCalendar(
       accessToken,
       this.props.user.timeZone,
-      date.clone().utc()
+      date.clone().utc(),
+      this.state.type
     );
-
     return events;
-  }
-
-  getDate(type: 'week' | 'month') {
-    return moment().clone().startOf(type);
   }
 
   getCalendar() {
@@ -91,14 +89,18 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
-  updateMonth(op: 'add' | 'subtract') {
+  async updateMonth(op: 'add' | 'subtract') {
     const newMonth =
       op === 'add'
         ? this.state.startOfMonth?.clone().add(1, 'months')
         : this.state.startOfMonth?.clone().subtract(1, 'months');
+
+    const events = await this.getUserEvents(newMonth as Moment);
+
     this.setState(
       {
-        startOfMonth: newMonth
+        startOfMonth: newMonth,
+        events
       },
       () => {
         this.getCalendar();
@@ -128,7 +130,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
           </div>
           <ol className='calendar-body'>
             <DayNameItems />
-            <DayItems days={this.state.days} />
+            <DayItems days={this.state.days} events={this.state.events} />
           </ol>
         </div>
       </div>
@@ -169,12 +171,22 @@ const DayNameItems = () => {
 const DayItems = (props: any) => {
   const daysItems = props.days.map((data: any, index: number) => {
     const isToday = moment(0, 'HH').diff(data.date, 'day') === 0;
+
+    const hasEvents = props.events.some(
+      (event: any) =>
+        isSameDate(event.date.start, data.date) ||
+        isSameDate(event.date.end, data.date)
+    );
+
     return (
       <li
         key={data.day + index}
         className={`${data.month} ${isToday ? 'today' : ''}`}
       >
-        {data.day}
+        <div className='test-div'>
+          {data.day}
+          {hasEvents ? <span className='dot'></span> : <></>}
+        </div>
       </li>
     );
   });

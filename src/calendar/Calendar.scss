@@ -65,6 +65,22 @@
       border-radius: 50%;
       width: 20px;
     }
+
+    .test-div {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      align-items: center;
+
+      .dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        position: absolute;
+        top: 30px;
+        background-color: var(--fds-secondary);
+      }
+    }
   }
 
   .day-name {
