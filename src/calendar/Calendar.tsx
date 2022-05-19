@@ -22,9 +22,12 @@ interface CalendarState {
   startOfMonth: Moment | undefined;
   days: MonthItem[];
   type: 'week' | 'month';
+  time: Moment;
 }
 
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
+  intervalID: any;
+
   constructor(props: any) {
     super(props);
 
@@ -37,8 +40,17 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       days: [],
       startOfWeek: undefined,
       startOfMonth: undefined,
-      type: 'month'
+      type: 'month',
+      time: moment()
     };
+  }
+
+  componentDidMount() {
+    this.intervalID = setInterval(() => this.tick(), 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalID);
   }
 
   async componentDidUpdate() {
@@ -103,7 +115,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
-  async updateMonth(op: 'add' | 'subtract') {
+  async updateMonth(op: string) {
     const newMonth =
       op === 'add'
         ? this.state.startOfMonth?.clone().add(1, 'months')
@@ -139,35 +151,39 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
+  tick() {
+    this.setState({
+      time: moment()
+    });
+  }
+
   render() {
     return (
-      <div className='calendar-wrapper'>
-        <div className='calendar-actions'>
-          <fds-button
-            label='Prev'
-            outlined
-            onClick={() => this.updateMonth('subtract')}
-          ></fds-button>
-          <fds-button
-            label='Next'
-            outlined
-            onClick={() => this.updateMonth('add')}
-          ></fds-button>
-        </div>
+      <div className='interactive-calendar-wrapper'>
+        <ClockDisplay today={this.state.time} />
 
         <div className='calendar'>
           <div className='calendar-header'>
-            <CalendarHeader startOfMonth={this.state.startOfMonth} />
+            <CalendarHeader
+              startOfMonth={this.state.startOfMonth}
+              updateMonth={(op: string) => this.updateMonth(op)}
+            />
           </div>
-          <ol className='calendar-body'>
-            <DayNameItems />
-            <DayItems days={this.state.days} events={this.state.events} />
-          </ol>
-          <CalendarSwitchMode
-            type={this.state.type}
-            startOfMonth={this.state.startOfMonth}
-            switchView={(mode: 'week' | 'month') => this.switchView(mode)}
-          />
+          <div
+            className={`calendar-body ${
+              this.state.type === 'month' ? 'month-view' : ''
+            }`}
+          >
+            <ol>
+              <DayNameItems />
+              <DayItems days={this.state.days} events={this.state.events} />
+            </ol>
+            <CalendarSwitchMode
+              type={this.state.type}
+              startOfMonth={this.state.startOfMonth}
+              switchView={(mode: 'week' | 'month') => this.switchView(mode)}
+            />
+          </div>
         </div>
       </div>
     );
@@ -175,6 +191,29 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
 }
 
 export default withAuthProvider(Calendar);
+
+const ClockDisplay = (props: any) => {
+  const hour = props.today.format('hh:mm a').toUpperCase();
+  const day = props.today.format('dddd');
+  const month = props.today.format('MMM DD, yyyy').toUpperCase();
+  return (
+    <div className='clock-container fds-elevation-3'>
+      <div className='clock-display '>
+        <span className='hour'>{hour}</span>
+        <div className='day fds-subtitle-2'>
+          <span>{day}</span>
+          <span>{month}</span>
+        </div>
+      </div>
+      <div className='clock-display-actions'>
+        <mwc-icon-button icon='calendar_today'></mwc-icon-button>
+        <mwc-icon-button icon='notifications_none'></mwc-icon-button>
+        <mwc-icon-button icon='chat_bubble_outline'></mwc-icon-button>
+        <mwc-icon-button icon='error_outline'></mwc-icon-button>
+      </div>
+    </div>
+  );
+};
 
 const CalendarHeader = (props: any) => {
   const month = props.startOfMonth?.format('MMMM');
@@ -185,8 +224,16 @@ const CalendarHeader = (props: any) => {
       <span className='fds-subtitle-2 month'>{month}</span>
       <span className='fds-subtitle-2'>{isSameMonth ? day : ''}</span>
       <div className='header-action'>
-        <mwc-icon-button dense icon='add'></mwc-icon-button>
-        <mwc-icon-button dense icon='more_vert'></mwc-icon-button>
+        <mwc-icon-button
+          icon='chevron_left'
+          onClick={() => props.updateMonth('subtract')}
+        ></mwc-icon-button>
+        <mwc-icon-button
+          icon='chevron_right'
+          onClick={() => props.updateMonth('add')}
+        ></mwc-icon-button>
+        <mwc-icon-button icon='add'></mwc-icon-button>
+        <mwc-icon-button icon='more_vert'></mwc-icon-button>
       </div>
     </>
   );
@@ -219,7 +266,7 @@ const DayItems = (props: any) => {
         key={data.day + index}
         className={`${data.month} ${isToday ? 'today' : ''}`}
       >
-        <div className='test-div'>
+        <div className='day-wrapper'>
           {data.day}
           {hasEvents ? <span className='dot'></span> : <></>}
         </div>
@@ -236,13 +283,13 @@ const CalendarSwitchMode = (props: any) => {
   return props.type === 'week' ? (
     <mwc-icon-button
       class='arrow-icon'
-      icon='keyboard_arrow_down'
+      icon='expand_more'
       onClick={() => props.switchView('month')}
     ></mwc-icon-button>
   ) : (
     <mwc-icon-button
       class='arrow-icon'
-      icon='keyboard_arrow_up'
+      icon='expand_less'
       onClick={() => props.switchView('week')}
     ></mwc-icon-button>
   );

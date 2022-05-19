@@ -1,18 +1,55 @@
 @use '@finastra/fds-theme' as fds;
 @use '@finastra/fds-theme/helpers';
 
-.calendar-wrapper {
+.interactive-calendar-wrapper {
   width: 400px;
   margin: auto;
+  border-radius: 6px;
+  background-color: #2a1a6a;
+  color: var(--fds-on-primary);
+}
+
+.clock-container {
+  padding: var(--fds-spacing-4) var(--fds-spacing-3) var(--fds-spacing-3);
+}
+
+.clock-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-3);
+
+  .hour {
+    font-size: 42px;
+  }
+
+  .day {
+    display: flex;
+    flex-direction: column;
+    color: #a189ff;
+  }
+}
+
+.clock-display-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--fds-spacing-3);
+
+  mwc-icon-button {
+    // primary / 400
+    color: #917ee0;
+  }
+
+  mwc-icon-button:first-of-type {
+    // secondary / 200
+    color: #f66cd4;
+  }
 }
 
 .calendar {
   padding: var(--fds-spacing-3);
-  background-color: #2a1a6a;
-  color: var(--fds-on-primary);
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
+  height: 650px;
 }
 
 .calendar-header {
@@ -40,11 +77,24 @@
 }
 
 .calendar-body {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  list-style: none;
-  padding: 0 var(--fds-spacing-2);
-  grid-gap: 1.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // height: 160px;
+  // transition: height 0.5s ease-out;
+
+  ol {
+    display: grid;
+    padding: 0 var(--fds-spacing-2);
+    grid-template-columns: repeat(7, 1fr);
+    list-style: none;
+    grid-gap: 1.5em;
+  }
+
+  // &.month-view {
+  // height: 400px;
+  // transition: height 0.5s ease-in;
+  // }
 
   li {
     @include fds.typography(body-2);
@@ -53,6 +103,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--fds-spacing-1);
+    width: 20px;
 
     &.next,
     &.previous {
@@ -65,10 +116,9 @@
       @include fds.typography(subtitle-2);
       background-color: var(--fds-secondary);
       border-radius: 50%;
-      width: 20px;
     }
 
-    .test-div {
+    .day-wrapper {
       display: flex;
       flex-direction: column;
       position: relative;
@@ -87,7 +137,7 @@
 
   .day-name {
     // color: var(--fds-primary);
-    // opacity: var(--fds-track-opacity, 0.95);
+    // opacity: var(--fds-track-opacity, 0.7);
     // primary / 400
     color: #917ee0;
     @include fds.typography(subtitle-1);
