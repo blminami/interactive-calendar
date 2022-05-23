@@ -14,6 +14,7 @@ import {
   isSameDate,
   MonthItem
 } from './Calendar.helper';
+import Events from '../events/Events';
 
 interface CalendarState {
   eventsLoaded: boolean;
@@ -23,6 +24,7 @@ interface CalendarState {
   days: MonthItem[];
   type: 'week' | 'month';
   time: Moment;
+  displayCalendar: boolean;
 }
 
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
@@ -41,7 +43,8 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       startOfWeek: undefined,
       startOfMonth: undefined,
       type: 'month',
-      time: moment()
+      time: moment(),
+      displayCalendar: true
     };
   }
 
@@ -157,6 +160,12 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
+  toggleCalendarView(newValue: boolean) {
+    this.setState({
+      displayCalendar: newValue
+    });
+  }
+
   render() {
     return (
       <div className='interactive-calendar-wrapper'>
@@ -166,24 +175,30 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
           <div className='calendar-header'>
             <CalendarHeader
               startOfMonth={this.state.startOfMonth}
+              displayArrows={this.state.displayCalendar}
               updateMonth={(op: string) => this.updateMonth(op)}
+              toggleCalendarView={(op: boolean) => this.toggleCalendarView(op)}
             />
           </div>
-          <div
-            className={`calendar-body ${
-              this.state.type === 'month' ? 'month-view' : ''
-            }`}
-          >
-            <ol>
-              <DayNameItems />
-              <DayItems days={this.state.days} events={this.state.events} />
-            </ol>
-            <CalendarSwitchMode
-              type={this.state.type}
-              startOfMonth={this.state.startOfMonth}
-              switchView={(mode: 'week' | 'month') => this.switchView(mode)}
-            />
-          </div>
+          {this.state.displayCalendar ? (
+            <div
+              className={`calendar-body ${
+                this.state.type === 'month' ? 'month-view' : ''
+              }`}
+            >
+              <ol>
+                <DayNameItems />
+                <DayItems days={this.state.days} events={this.state.events} />
+              </ol>
+              <CalendarSwitchMode
+                type={this.state.type}
+                startOfMonth={this.state.startOfMonth}
+                switchView={(mode: 'week' | 'month') => this.switchView(mode)}
+              />
+            </div>
+          ) : (
+            <Events />
+          )}
         </div>
       </div>
     );
@@ -224,15 +239,22 @@ const CalendarHeader = (props: any) => {
       <span className='fds-subtitle-2 month'>{month}</span>
       <span className='fds-subtitle-2'>{isSameMonth ? day : ''}</span>
       <div className='header-action'>
+        {props.displayArrows ? (
+          <>
+            <mwc-icon-button
+              icon='chevron_left'
+              onClick={() => props.updateMonth('subtract')}
+            ></mwc-icon-button>
+            <mwc-icon-button
+              icon='chevron_right'
+              onClick={() => props.updateMonth('add')}
+            ></mwc-icon-button>
+          </>
+        ) : null}
         <mwc-icon-button
-          icon='chevron_left'
-          onClick={() => props.updateMonth('subtract')}
+          icon='add'
+          onClick={() => props.toggleCalendarView(false)}
         ></mwc-icon-button>
-        <mwc-icon-button
-          icon='chevron_right'
-          onClick={() => props.updateMonth('add')}
-        ></mwc-icon-button>
-        <mwc-icon-button icon='add'></mwc-icon-button>
         <mwc-icon-button icon='more_vert'></mwc-icon-button>
       </div>
     </>

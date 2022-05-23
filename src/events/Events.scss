@@ -1,0 +1,48 @@
+@use '@finastra/fds-theme' as fds;
+@use '@finastra/fds-theme/helpers';
+
+.events-form-container {
+  padding: var(--fds-spacing-3);
+  margin-top: var(--fds-spacing-2);
+  border-radius: 6px;
+  background-color: #372773;
+
+  .input-form {
+    margin-top: var(--fds-spacing-2);
+    margin-bottom: var(--fds-spacing-3);
+
+    mwc-icon-button {
+      position: absolute;
+    }
+  }
+
+  .input-field {
+    @include fds.typography(subtitle-2);
+    padding: var(--fds-spacing-1) var(--fds-spacing-4);
+    padding-left: 55px;
+    border: 1.5px solid #ffffff;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #ffffff;
+    width: -webkit-fill-available;
+    height: 38px;
+
+    &:focus-visible {
+      outline: none;
+    }
+
+    &::placeholder {
+      color: #cbc7db;
+    }
+  }
+
+  .notes {
+    padding-top: 12px;
+    height: unset;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
