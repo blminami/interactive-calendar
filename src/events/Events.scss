@@ -9,7 +9,8 @@
 
   .input-form {
     margin-top: var(--fds-spacing-2);
-    margin-bottom: var(--fds-spacing-3);
+    margin-bottom: var(--fds-spacing-2);
+    position: relative;
 
     mwc-icon-button {
       position: absolute;
@@ -34,6 +35,52 @@
     &::placeholder {
       color: #cbc7db;
     }
+
+    &.date-picker {
+      width: 120px;
+      padding-left: var(--fds-spacing-2);
+      padding-right: var(--fds-spacing-2);
+    }
+
+    &.time-picker {
+      width: 105px;
+      padding-left: var(--fds-spacing-2);
+      padding-right: var(--fds-spacing-2);
+    }
+  }
+
+  .notification::after {
+    content: 'minutes before';
+    color: #cbc7db;
+    position: absolute;
+    top: 14px;
+    left: 85px;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator {
+    color: #ffffff !important;
+    font-size: 24px;
+    color-scheme: dark;
+  }
+
+  input[type='time']::-webkit-calendar-picker-indicator {
+    color: #ffffff !important;
+    font-size: 24px;
+    color-scheme: dark;
+  }
+
+  .time-slot {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: var(--fds-spacing-3);
+  }
+
+  .time-inputs {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--fds-spacing-2);
   }
 
   .notes {

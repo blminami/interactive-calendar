@@ -97,3 +97,16 @@ export async function getUserCalendar(
     return response.value;
   }
 }
+
+export async function createEvent(
+  accessToken: string,
+  event: Event
+): Promise<Event[]> {
+  const client = getAuthenticatedClient(accessToken);
+
+  const eventResponse = await client
+    .api('/me/calendar/events')
+    .header('Content-type', 'application/json')
+    .post(event);
+  return eventResponse;
+}

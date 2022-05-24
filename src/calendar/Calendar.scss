@@ -49,7 +49,7 @@
 
 .calendar {
   padding: var(--fds-spacing-3);
-  height: 650px;
+  min-height: 650px;
 }
 
 .calendar-header {

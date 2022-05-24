@@ -16,6 +16,8 @@ declare global {
       'mwc-list-item': any;
       'fds-logo': any;
       'mwc-icon': any;
+      'fds-switch': any;
+      'mwc-formfield': any;
     }
   }
 }

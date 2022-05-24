@@ -197,7 +197,11 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
               />
             </div>
           ) : (
-            <Events />
+            <Events
+              getAccessToken={this.props.getAccessToken}
+              user={this.props.user}
+              navigateToCalendar={() => this.toggleCalendarView(true)}
+            />
           )}
         </div>
       </div>
