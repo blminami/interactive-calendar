@@ -18,6 +18,7 @@ declare global {
       'mwc-icon': any;
       'fds-switch': any;
       'mwc-formfield': any;
+      'fds-divider': any;
     }
   }
 }

@@ -56,7 +56,6 @@ export async function getUserCalendar(
     .api('/me/calendarview')
     .header('Prefer', `outlook.timezone="${timeZone}"`)
     .query({ startDateTime: startDateTime, endDateTime: endDateTime })
-    .select('subject,organizer,start,end')
     .orderby('start/dateTime')
     .top(50)
     .get();

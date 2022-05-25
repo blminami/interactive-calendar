@@ -1,0 +1,61 @@
+@use '@finastra/fds-theme' as fds;
+@use '@finastra/fds-theme/helpers';
+
+.event-details-container {
+  padding: var(--fds-spacing-1) var(--fds-spacing-3) var(--fds-spacing-2);
+  margin-top: var(--fds-spacing-2);
+  border-radius: 6px;
+  background-color: #372773;
+
+  .event-details-header {
+    display: flex;
+    align-items: center;
+
+    mwc-icon-button[icon='delete_outline'] {
+      margin-left: auto;
+    }
+  }
+
+  .event-date-details {
+    display: flex;
+    flex-direction: column;
+    color: #cbc7db;
+    margin: 0 48px var(--fds-spacing-2);
+  }
+
+  .divider {
+    background-color: #8379a8;
+    margin-bottom: var(--fds-spacing-2);
+  }
+
+  .body-preview {
+    margin: 0 48px var(--fds-spacing-2);
+    overflow-wrap: break-word;
+  }
+
+  .details {
+    display: flex;
+    align-items: center;
+    margin-top: -6px;
+  }
+
+  .attendee {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--fds-spacing-3);
+    margin-top: var(--fds-spacing-2);
+
+    .avatar {
+      @include fds.typography(subtitle-2);
+      width: 24px;
+      height: 24px;
+      background-color: #f66cd4;
+      border-radius: 50%;
+      margin-left: 14px;
+      margin-right: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}

@@ -1,18 +1,19 @@
 import { Event } from 'microsoft-graph';
 import React from 'react';
-import { config } from '../Config';
-import { createEvent } from '../services/GraphService';
-import './Events.scss';
+import { createEvent } from '../../services/GraphService';
+import './EventsForm.scss';
 import '@finastra/switch';
 import '@material/mwc-formfield';
 import moment from 'moment-timezone';
-interface EventProps {
+import { config } from '../../Config';
+
+interface EventFormProps {
   getAccessToken: any;
   user: any;
   navigateToCalendar: any;
 }
 
-interface EventState {
+interface EventFormState {
   subject: string;
   body: string;
   startDate: string;
@@ -23,7 +24,11 @@ interface EventState {
   attendees: string;
   notification: string;
 }
-export default class Events extends React.Component<EventProps, EventState> {
+
+export default class EventsForm extends React.Component<
+  EventFormProps,
+  EventFormState
+> {
   constructor(props: any) {
     super(props);
 

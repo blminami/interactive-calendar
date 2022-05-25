@@ -14,7 +14,9 @@ import {
   isSameDate,
   MonthItem
 } from './Calendar.helper';
-import Events from '../events/Events';
+import EventsForm from '../events/events-form/EventsForm';
+import EventsTimeline from '../events/events-timeline/EventsTimeline';
+import EventDetails from '../events/event-details/EventDetails';
 
 interface CalendarState {
   eventsLoaded: boolean;
@@ -25,6 +27,7 @@ interface CalendarState {
   type: 'week' | 'month';
   time: Moment;
   displayCalendar: boolean;
+  displayEventDetails: boolean;
 }
 
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
@@ -35,6 +38,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
 
     this.updateMonth = this.updateMonth.bind(this);
     this.switchView = this.switchView.bind(this);
+    this.toggleEventDetails = this.toggleEventDetails.bind(this);
 
     this.state = {
       eventsLoaded: false,
@@ -42,9 +46,10 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       days: [],
       startOfWeek: undefined,
       startOfMonth: undefined,
-      type: 'month',
+      type: 'week',
       time: moment(),
-      displayCalendar: true
+      displayCalendar: true,
+      displayEventDetails: false
     };
   }
 
@@ -60,7 +65,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     if (this.props.user && !this.state.eventsLoaded) {
       try {
         const events = await this.getUserEvents(
-          getDate('month'),
+          getDate('week'),
           this.state.type
         );
 
@@ -162,7 +167,14 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
 
   toggleCalendarView(newValue: boolean) {
     this.setState({
-      displayCalendar: newValue
+      displayCalendar: newValue,
+      displayEventDetails: false
+    });
+  }
+
+  toggleEventDetails(newValue: boolean) {
+    this.setState({
+      displayEventDetails: newValue
     });
   }
 
@@ -181,23 +193,35 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
             />
           </div>
           {this.state.displayCalendar ? (
-            <div
-              className={`calendar-body ${
-                this.state.type === 'month' ? 'month-view' : ''
-              }`}
-            >
-              <ol>
-                <DayNameItems />
-                <DayItems days={this.state.days} events={this.state.events} />
-              </ol>
-              <CalendarSwitchMode
-                type={this.state.type}
-                startOfMonth={this.state.startOfMonth}
-                switchView={(mode: 'week' | 'month') => this.switchView(mode)}
-              />
-            </div>
+            <>
+              <div
+                className={`calendar-body ${
+                  this.state.type === 'month' ? 'month-view' : ''
+                }`}
+              >
+                <ol>
+                  <DayNameItems />
+                  <DayItems days={this.state.days} events={this.state.events} />
+                </ol>
+                <CalendarSwitchMode
+                  type={this.state.type}
+                  startOfMonth={this.state.startOfMonth}
+                  switchView={(mode: 'week' | 'month') => this.switchView(mode)}
+                />
+              </div>
+              {this.state.displayEventDetails ? (
+                <EventDetails
+                  event={this.state.events[0]}
+                  navigateBack={() => this.toggleEventDetails(false)}
+                />
+              ) : (
+                <EventsTimeline
+                  navigateToEvents={() => this.toggleEventDetails(true)}
+                />
+              )}
+            </>
           ) : (
-            <Events
+            <EventsForm
               getAccessToken={this.props.getAccessToken}
               user={this.props.user}
               navigateToCalendar={() => this.toggleCalendarView(true)}

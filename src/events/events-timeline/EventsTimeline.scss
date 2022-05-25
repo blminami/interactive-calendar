@@ -1,0 +1,9 @@
+@use '@finastra/fds-theme' as fds;
+@use '@finastra/fds-theme/helpers';
+
+.events-timeline-container {
+  padding: var(--fds-spacing-3);
+  margin-top: var(--fds-spacing-2);
+  border-radius: 6px;
+  background-color: #372773;
+}
