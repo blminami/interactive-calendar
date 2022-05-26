@@ -54,7 +54,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
   }
 
   componentDidMount() {
-    this.intervalID = setInterval(() => this.tick(), 1000);
+    this.intervalID = setInterval(() => this.tick(), 10000);
   }
 
   componentWillUnmount() {
@@ -178,6 +178,18 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
+  getEventsForSelectedDay() {
+    console.log('hello world;');
+    const day = this.state.time;
+    const test = this.state.events.filter((event: any) =>
+      isSameDate(event.date.start, day)
+    );
+    console.log(test);
+    return this.state.events.filter((event: any) =>
+      isSameDate(event.date.start, day)
+    );
+  }
+
   render() {
     return (
       <div className='interactive-calendar-wrapper'>
@@ -216,6 +228,8 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
                 />
               ) : (
                 <EventsTimeline
+                  key={1}
+                  events={this.getEventsForSelectedDay()}
                   navigateToEvents={() => this.toggleEventDetails(true)}
                 />
               )}
