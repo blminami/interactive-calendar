@@ -40,8 +40,12 @@ export default class EventsForm extends React.Component<
   async saveEvent() {
     const accessToken = await this.props.getAccessToken(config.scopes);
     const event = this.mapStateToEventObj();
-    await createEvent(accessToken, event as Event);
-    this.props.navigateToCalendar();
+    const newEvent: any = await createEvent(accessToken, event as Event);
+    newEvent.date = {
+      start: moment(newEvent.start.dateTime),
+      end: moment(newEvent.end.dateTime)
+    };
+    this.props.navigateToCalendar(newEvent);
   }
 
   handleInputFieldChange(event: any, field: string) {
@@ -66,7 +70,7 @@ export default class EventsForm extends React.Component<
     }
 
     if (currentEvent.startTime) {
-      startDate = `${currentEvent.startDate}T${currentEvent.endTime}`;
+      startDate = `${currentEvent.startDate}T${currentEvent.startTime}`;
     }
     if (currentEvent.endTime) {
       endDate = `${currentEvent.startDate}T${currentEvent.endTime}`;

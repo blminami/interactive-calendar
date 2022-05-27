@@ -112,7 +112,7 @@
       @include fds.typography(subtitle-2);
     }
 
-    &.today {
+    &.selected {
       @include fds.typography(subtitle-2);
       background-color: var(--fds-secondary);
       border-radius: 50%;
