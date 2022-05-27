@@ -6,7 +6,7 @@ import '@material/mwc-formfield';
 import moment from 'moment-timezone';
 
 interface EventDetailsProps {
-  event: Event;
+  event: Event | undefined;
   navigateBack: any;
 }
 
@@ -24,8 +24,6 @@ export default class EventDetails extends React.Component<
     this.state = {
       event: this.mapGraphEventToState()
     };
-
-    console.log('event: ', props.event);
   }
 
   mapGraphEventToState() {

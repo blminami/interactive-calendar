@@ -28,6 +28,8 @@ interface CalendarState {
   time: Moment;
   displayCalendar: boolean;
   displayEventDetails: boolean;
+  currentEvent: Event | undefined;
+  selectedDay: Moment;
 }
 
 class Calendar extends React.Component<AuthComponentProps, CalendarState> {
@@ -49,12 +51,13 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       type: 'week',
       time: moment(),
       displayCalendar: true,
-      displayEventDetails: false
-    };
+      displayEventDetails: false,
+      selectedDay: moment()
+    } as any;
   }
 
   componentDidMount() {
-    this.intervalID = setInterval(() => this.tick(), 10000);
+    this.intervalID = setInterval(() => this.tick(), 1000);
   }
 
   componentWillUnmount() {
@@ -133,9 +136,10 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
 
     this.setState(
       {
-        startOfMonth: newMonth,
         events,
-        type: 'month'
+        startOfMonth: newMonth,
+        type: 'month',
+        selectedDay: moment()
       },
       () => {
         this.getCalendar();
@@ -149,9 +153,10 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     const stateToUpdate = mode === 'week' ? 'startOfWeek' : 'startOfMonth';
 
     const newState = {
-      [stateToUpdate]: newDate,
       events,
-      type: mode
+      type: mode,
+      selectedDay: moment(),
+      [stateToUpdate]: newDate
     };
 
     this.setState(newState as any, () => {
@@ -165,29 +170,38 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
-  toggleCalendarView(newValue: boolean) {
+  toggleCalendarView(newValue: boolean, newEvent?: Event) {
+    const events = this.state.events;
+    if (newEvent) {
+      events.push(newEvent);
+    }
     this.setState({
       displayCalendar: newValue,
-      displayEventDetails: false
+      displayEventDetails: false,
+      events
     });
   }
 
-  toggleEventDetails(newValue: boolean) {
+  toggleEventDetails(newValue: boolean, id?: string) {
+    const currentEvent = id
+      ? this.state.events.find((event) => event.id === id) || {}
+      : {};
     this.setState({
-      displayEventDetails: newValue
+      displayEventDetails: newValue,
+      currentEvent
     });
   }
 
   getEventsForSelectedDay() {
-    console.log('hello world;');
-    const day = this.state.time;
-    const test = this.state.events.filter((event: any) =>
-      isSameDate(event.date.start, day)
-    );
-    console.log(test);
     return this.state.events.filter((event: any) =>
-      isSameDate(event.date.start, day)
+      isSameDate(event.date.start, this.state.selectedDay)
     );
+  }
+
+  onSelectedDayChange(newDay: Moment) {
+    this.setState({
+      selectedDay: newDay
+    });
   }
 
   render() {
@@ -213,7 +227,14 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
               >
                 <ol>
                   <DayNameItems />
-                  <DayItems days={this.state.days} events={this.state.events} />
+                  <DayItems
+                    days={this.state.days}
+                    selectedDay={this.state.selectedDay}
+                    events={this.state.events}
+                    onSelectedDayChange={(date: Moment) =>
+                      this.onSelectedDayChange(date)
+                    }
+                  />
                 </ol>
                 <CalendarSwitchMode
                   type={this.state.type}
@@ -223,14 +244,15 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
               </div>
               {this.state.displayEventDetails ? (
                 <EventDetails
-                  event={this.state.events[0]}
+                  event={this.state.currentEvent}
                   navigateBack={() => this.toggleEventDetails(false)}
                 />
               ) : (
                 <EventsTimeline
-                  key={1}
                   events={this.getEventsForSelectedDay()}
-                  navigateToEvents={() => this.toggleEventDetails(true)}
+                  navigateToEvent={(id: string) =>
+                    this.toggleEventDetails(true, id)
+                  }
                 />
               )}
             </>
@@ -238,7 +260,9 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
             <EventsForm
               getAccessToken={this.props.getAccessToken}
               user={this.props.user}
-              navigateToCalendar={() => this.toggleCalendarView(true)}
+              navigateToCalendar={(newEvent: Event) =>
+                this.toggleCalendarView(true, newEvent)
+              }
             />
           )}
         </div>
@@ -317,7 +341,9 @@ const DayNameItems = () => {
 
 const DayItems = (props: any) => {
   const daysItems = props.days.map((data: any, index: number) => {
-    const isToday = moment(0, 'HH').diff(data.date, 'day') === 0;
+    const isSelectedDay =
+      props.selectedDay.format('dd MMMM YYYY') ===
+      data.date.format('dd MMMM YYYY');
 
     const hasEvents = props.events.some(
       (event: any) =>
@@ -328,7 +354,8 @@ const DayItems = (props: any) => {
     return (
       <li
         key={data.day + index}
-        className={`${data.month} ${isToday ? 'today' : ''}`}
+        className={`${data.month} ${isSelectedDay ? 'selected' : ''}`}
+        onClick={() => props.onSelectedDayChange(data.date)}
       >
         <div className='day-wrapper'>
           {data.day}

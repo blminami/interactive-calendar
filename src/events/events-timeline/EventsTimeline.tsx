@@ -4,53 +4,16 @@ import './EventsTimeline.scss';
 import '@finastra/switch';
 import '@material/mwc-formfield';
 import moment from 'moment-timezone';
+import { timeSlotsConfig } from './EventTimeline.helper';
 
 interface EventsTimelineProps {
   events: Event[];
-  navigateToEvents: any;
+  navigateToEvent: any;
 }
-
-interface EventsTimelineState {
-  timeSlots: any;
-  eventsLoaded: boolean;
-}
-
-const timeSlots = [
-  {
-    time: '00:00 AM',
-    state: 'prev',
-    events: []
-  },
-  {
-    time: '01:00 AM',
-    state: 'prev'
-  },
-  { time: '02:00 AM', state: 'prev' },
-  { time: '03:00 AM', state: 'prev' },
-  { time: '04:00 AM', state: 'prev' },
-  { time: '05:00 AM', state: 'prev' },
-  { time: '06:00 AM', state: 'prev' },
-  { time: '07:00 AM', state: 'prev' },
-  { time: '08:00 AM', state: 'prev' },
-  { time: '09:00 AM', state: 'prev' },
-  { time: '10:00 AM', state: 'prev' },
-  { time: '11:00 AM', state: 'prev' },
-  { time: '12:00 PM', state: 'prev' },
-  { time: '01:00 PM', state: 'prev' },
-  { time: '02:00 PM', state: 'prev' },
-  { time: '03:00 PM', state: 'prev' },
-  { time: '04:00 PM', state: 'prev' },
-  { time: '05:00 PM', state: 'prev' },
-  { time: '06:00 PM', state: 'prev' },
-  { time: '07:00 PM', state: 'prev' },
-  { time: '08:00 PM', state: 'prev' },
-  { time: '09:00 PM', state: 'prev' },
-  { time: '10:00 PM', state: 'prev' },
-  { time: '11:00 PM', state: 'prev' }
-];
 
 export default class EventsTimeline extends React.Component<EventsTimelineProps> {
-  compTimeSlots = [...timeSlots];
+  compTimeSlots = [...timeSlotsConfig];
+
   constructor(props: any) {
     super(props);
   }
@@ -63,26 +26,27 @@ export default class EventsTimeline extends React.Component<EventsTimelineProps>
     const eventMap: any = {};
     this.props.events?.forEach((event: any) => {
       const startTime = event.date.start.format('hh:mm A');
+      const startTimeOfInterval = event.date.start.format('hh:00 A');
       const endTime = event.date.end.format('hh:mm A');
-      console.log('startTime:', startTime);
       const ev = {
         subject: event.subject,
+        startMin: event.date.start.format('mm'),
+        diffMin: event.date.end.diff(event.date.start) / 60000,
         startTime,
         endTime,
-        startMin: event.date.start.format('mm'),
-        diffMin: event.date.end.diff(event.date.start) / 60000
+        id: event.id
       };
-      if (!eventMap[startTime]) {
-        eventMap[startTime] = [ev];
+      if (!eventMap[startTimeOfInterval]) {
+        eventMap[startTimeOfInterval] = [ev];
       } else {
-        eventMap[startTime].push(ev);
+        eventMap[startTimeOfInterval].push(ev);
       }
     });
 
     const currentTime = moment().format('hh:mm a').toUpperCase();
     const newTimeSlots: any = [];
     let found = false;
-    timeSlots.forEach((timeSlot, index) => {
+    this.compTimeSlots.forEach((timeSlot, index) => {
       timeSlot.events = eventMap[timeSlot.time];
       const beginningTime = moment(timeSlot.time, 'h:mma');
       const endTime = moment(currentTime, 'h:mma');
@@ -103,24 +67,22 @@ export default class EventsTimeline extends React.Component<EventsTimelineProps>
   render() {
     return (
       <div className='events-timeline-container fds-subtitle-2'>
-        {this.compTimeSlots.map((timeSlot: any, index: number) => {
+        {this.compTimeSlots.map((timeSlot: any) => {
           return (
-            <div key={index} className='time-slot'>
+            <div key={timeSlot.time} className='time-slot'>
               <span className='time-slot-value'>{timeSlot.time}</span>
               <div className='event-slot'>
                 <fds-divider class='slot-divider'></fds-divider>
-                {timeSlot.events?.map((event: any, index: number) => {
+                {timeSlot.events?.map((event: any) => {
                   return (
-                    <div
-                      key={`event${index}`}
-                      className='event'
-                      style={{
-                        marginTop: +event.startMin + 2,
-                        height: +event.diffMin
-                      }}
-                    >
-                      test
-                    </div>
+                    <EventItem
+                      key={event.id}
+                      timeSlot={timeSlot}
+                      event={event}
+                      navigateToEvent={(id: string) =>
+                        this.props.navigateToEvent(id)
+                      }
+                    />
                   );
                 })}
               </div>
@@ -131,3 +93,21 @@ export default class EventsTimeline extends React.Component<EventsTimelineProps>
     );
   }
 }
+
+const EventItem = (props: any) => {
+  return (
+    <div
+      className={`event  ${props.timeSlot.state}`}
+      style={{
+        marginTop: +props.event.startMin + 2,
+        height: +props.event.diffMin + 14
+      }}
+      onClick={() => props.navigateToEvent(props.event.id)}
+    >
+      <span className='event-time fds-caption'>
+        {props.event.startTime} - {props.event.endTime}
+      </span>
+      <span className='fds-subtitle-1'>{props.event.subject}</span>
+    </div>
+  );
+};

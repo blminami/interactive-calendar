@@ -22,7 +22,7 @@
 
 .time-slot {
   display: flex;
-  height: 80px;
+  height: 100px;
 
   .time-slot-value {
     width: 100px;
@@ -43,9 +43,27 @@
     background: white;
     color: black;
     border-radius: 6px;
-    padding: var(--fds-spacing-1);
+    padding: var(--fds-spacing-1) var(--fds-spacing-3);
     position: absolute;
-    width: 100%;
+    width: -webkit-fill-available;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+
+    &.next {
+      background-color: #d9d3f5;
+      .event-time {
+        color: black !important;
+      }
+    }
+
+    &.prev {
+      opacity: 0.6;
+    }
+  }
+
+  .event-time {
+    color: #949494;
   }
 }
