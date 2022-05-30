@@ -95,12 +95,16 @@ export default class EventsTimeline extends React.Component<EventsTimelineProps>
 }
 
 const EventItem = (props: any) => {
+  const timeSlotHeight = 90;
+  const marginTop = (+props.event.startMin * timeSlotHeight) / 60 + 1;
+  const height = (+props.event.diffMin * timeSlotHeight) / 60 - 1;
+
   return (
     <div
       className={`event  ${props.timeSlot.state}`}
       style={{
-        marginTop: +props.event.startMin + 2,
-        height: +props.event.diffMin + 14
+        marginTop,
+        height
       }}
       onClick={() => props.navigateToEvent(props.event.id)}
     >

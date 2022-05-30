@@ -342,8 +342,8 @@ const DayNameItems = () => {
 const DayItems = (props: any) => {
   const daysItems = props.days.map((data: any, index: number) => {
     const isSelectedDay =
-      props.selectedDay.format('dd MMMM YYYY') ===
-      data.date.format('dd MMMM YYYY');
+      props.selectedDay.format('DD MMMM YYYY') ===
+      data.date.format('DD MMMM YYYY');
 
     const hasEvents = props.events.some(
       (event: any) =>
