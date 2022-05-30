@@ -8,6 +8,7 @@ import moment from 'moment-timezone';
 interface EventDetailsProps {
   event: Event | undefined;
   navigateBack: any;
+  deleteEvent: any;
 }
 
 interface EventDetailsState {
@@ -56,7 +57,10 @@ export default class EventDetails extends React.Component<
             onClick={this.props.navigateBack}
           ></mwc-icon-button>
           <span className='fds-subtitle-1'>{event.subject}</span>
-          <mwc-icon-button icon='delete_outline'></mwc-icon-button>
+          <mwc-icon-button
+            icon='delete_outline'
+            onClick={() => this.props.deleteEvent(event.id)}
+          ></mwc-icon-button>
         </div>
         <div className='event-date-details fds-body-1'>
           <span>{event.startDate}</span>

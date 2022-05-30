@@ -12,11 +12,11 @@
   &::-webkit-scrollbar {
     width: 6px;
     height: 3px;
-    border-radius: 6px;
   }
 
   &::-webkit-scrollbar-thumb {
     background: #6f688a;
+    border-radius: 10px;
   }
 }
 

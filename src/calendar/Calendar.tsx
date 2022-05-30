@@ -2,14 +2,12 @@ import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { Event } from 'microsoft-graph';
 import { config } from '../Config';
-import { getUserCalendar } from '../services/GraphService';
+import { deleteEvent, getUserCalendar } from '../services/GraphService';
 import withAuthProvider, { AuthComponentProps } from '../services/AuthProvider';
 import './Calendar.scss';
 import {
-  createDaysForCurrentMonth,
-  createDaysForCurrentWeek,
-  createDaysForNextMonth,
-  createDaysForPreviousMonth,
+  CalendarMode,
+  getCalendar,
   getDate,
   isSameDate,
   MonthItem
@@ -24,7 +22,7 @@ interface CalendarState {
   startOfWeek: Moment | undefined;
   startOfMonth: Moment | undefined;
   days: MonthItem[];
-  type: 'week' | 'month';
+  type: CalendarMode;
   time: Moment;
   displayCalendar: boolean;
   displayEventDetails: boolean;
@@ -48,7 +46,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
       days: [],
       startOfWeek: undefined,
       startOfMonth: undefined,
-      type: 'week',
+      type: CalendarMode.Week,
       time: moment(),
       displayCalendar: true,
       displayEventDetails: false,
@@ -68,17 +66,16 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     if (this.props.user && !this.state.eventsLoaded) {
       try {
         const events = await this.getUserEvents(
-          getDate('week'),
+          getDate(this.state.type),
           this.state.type
         );
 
         this.setState({
           eventsLoaded: true,
           events: events,
-          startOfWeek: getDate('week'),
-          startOfMonth: getDate('month')
+          startOfWeek: getDate(CalendarMode.Week),
+          startOfMonth: getDate(CalendarMode.Month)
         });
-
         this.getCalendar();
       } catch (err) {
         this.props.setError('ERROR', JSON.stringify(err));
@@ -86,7 +83,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     }
   }
 
-  async getUserEvents(date: Moment, type: 'week' | 'month') {
+  async getUserEvents(date: Moment, type: CalendarMode) {
     const accessToken = await this.props.getAccessToken(config.scopes);
     const events = await getUserCalendar(
       accessToken,
@@ -98,28 +95,11 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
   }
 
   getCalendar() {
-    const days = [];
-    if (this.state.type === 'month') {
-      const currentMonth = this.state.startOfMonth;
-      const daysInCurrentMonth = createDaysForCurrentMonth(
-        currentMonth as Moment
-      );
-      const daysInPreviousMonth = createDaysForPreviousMonth(
-        currentMonth as Moment
-      );
-      const daysInNextMonth = createDaysForNextMonth(currentMonth as Moment);
-
-      days.push(
-        ...daysInPreviousMonth,
-        ...daysInCurrentMonth,
-        ...daysInNextMonth
-      );
-    } else {
-      const currentWeek = this.state.startOfWeek;
-      const daysInCurrentWeek = createDaysForCurrentWeek(currentWeek as Moment);
-
-      days.push(...daysInCurrentWeek);
-    }
+    const startDate =
+      this.state.type === CalendarMode.Month
+        ? this.state.startOfMonth
+        : this.state.startOfWeek;
+    const days = getCalendar(this.state.type, startDate as Moment);
 
     this.setState({
       days
@@ -132,13 +112,16 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
         ? this.state.startOfMonth?.clone().add(1, 'months')
         : this.state.startOfMonth?.clone().subtract(1, 'months');
 
-    const events = await this.getUserEvents(newMonth as Moment, 'month');
+    const events = await this.getUserEvents(
+      newMonth as Moment,
+      CalendarMode.Month
+    );
 
     this.setState(
       {
         events,
         startOfMonth: newMonth,
-        type: 'month',
+        type: CalendarMode.Month,
         selectedDay: moment()
       },
       () => {
@@ -147,10 +130,11 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     );
   }
 
-  async switchView(mode: 'week' | 'month') {
+  async switchView(mode: CalendarMode) {
     const newDate = getDate(mode);
     const events = await this.getUserEvents(newDate, mode);
-    const stateToUpdate = mode === 'week' ? 'startOfWeek' : 'startOfMonth';
+    const stateToUpdate =
+      mode === CalendarMode.Week ? 'startOfWeek' : 'startOfMonth';
 
     const newState = {
       events,
@@ -204,6 +188,16 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
     });
   }
 
+  async deleteEvent(id: string) {
+    const accessToken = await this.props.getAccessToken(config.scopes);
+    await deleteEvent(accessToken, id);
+    const events = this.state.events;
+    this.setState({
+      displayEventDetails: false,
+      events: events.filter((event) => event.id !== id)
+    });
+  }
+
   render() {
     return (
       <div className='interactive-calendar-wrapper'>
@@ -222,7 +216,7 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
             <>
               <div
                 className={`calendar-body ${
-                  this.state.type === 'month' ? 'month-view' : ''
+                  this.state.type === CalendarMode.Month ? 'month-view' : ''
                 }`}
               >
                 <ol>
@@ -239,13 +233,14 @@ class Calendar extends React.Component<AuthComponentProps, CalendarState> {
                 <CalendarSwitchMode
                   type={this.state.type}
                   startOfMonth={this.state.startOfMonth}
-                  switchView={(mode: 'week' | 'month') => this.switchView(mode)}
+                  switchView={(mode: CalendarMode) => this.switchView(mode)}
                 />
               </div>
               {this.state.displayEventDetails ? (
                 <EventDetails
                   event={this.state.currentEvent}
                   navigateBack={() => this.toggleEventDetails(false)}
+                  deleteEvent={(id: string) => this.deleteEvent(id)}
                 />
               ) : (
                 <EventsTimeline
@@ -371,17 +366,17 @@ const CalendarSwitchMode = (props: any) => {
   const month = props.startOfMonth?.format('MMMM');
   const isSameMonth = month === moment().format('MMMM');
   if (!isSameMonth) return <></>;
-  return props.type === 'week' ? (
+  return props.type === CalendarMode.Week ? (
     <mwc-icon-button
       class='arrow-icon'
       icon='expand_more'
-      onClick={() => props.switchView('month')}
+      onClick={() => props.switchView(CalendarMode.Month)}
     ></mwc-icon-button>
   ) : (
     <mwc-icon-button
       class='arrow-icon'
       icon='expand_less'
-      onClick={() => props.switchView('week')}
+      onClick={() => props.switchView(CalendarMode.Week)}
     ></mwc-icon-button>
   );
 };

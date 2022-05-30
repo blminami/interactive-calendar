@@ -6,8 +6,15 @@ export interface MonthItem {
   date: Moment;
 }
 
-export function getDate(type: 'week' | 'month') {
-  return moment().clone().startOf(type);
+export enum CalendarMode {
+  'Week' = 'WEEK',
+  'Month' = 'MONTH'
+}
+
+export function getDate(type: CalendarMode) {
+  return moment()
+    .clone()
+    .startOf(type.toLowerCase() as moment.unitOfTime.StartOf);
 }
 
 export function isSameDate(date1: Moment, date2: Moment) {
@@ -17,7 +24,7 @@ export function isSameDate(date1: Moment, date2: Moment) {
   );
 }
 
-export function createDaysForCurrentMonth(date: Moment) {
+function createDaysForCurrentMonth(date: Moment) {
   return [
     ...Array.from({ length: date.daysInMonth() }, (_, index) => {
       return {
@@ -29,7 +36,7 @@ export function createDaysForCurrentMonth(date: Moment) {
   ];
 }
 
-export function createDaysForNextMonth(date: Moment) {
+function createDaysForNextMonth(date: Moment) {
   const lastDayOfTheMonth = date.clone().endOf('month');
   const lastDayOfTheMonthWeekday = lastDayOfTheMonth.weekday();
 
@@ -47,7 +54,7 @@ export function createDaysForNextMonth(date: Moment) {
   });
 }
 
-export function createDaysForPreviousMonth(date: Moment) {
+function createDaysForPreviousMonth(date: Moment) {
   const firstDayOfTheMonthWeekday = date.weekday();
 
   return [...Array(firstDayOfTheMonthWeekday)]
@@ -64,7 +71,7 @@ export function createDaysForPreviousMonth(date: Moment) {
     .reverse();
 }
 
-export function createDaysForCurrentWeek(date: Moment) {
+function createDaysForCurrentWeek(date: Moment) {
   return [...Array(7)].map((_, index) => {
     return {
       day: date.clone().add(index, 'day').format('D'),
@@ -72,4 +79,27 @@ export function createDaysForCurrentWeek(date: Moment) {
       month: 'current'
     };
   });
+}
+
+export function getCalendar(type: CalendarMode, startDate: Moment): any[] {
+  const days = [];
+
+  switch (type) {
+    case CalendarMode.Month:
+      const daysInCurrentMonth = createDaysForCurrentMonth(startDate);
+      const daysInPreviousMonth = createDaysForPreviousMonth(startDate);
+      const daysInNextMonth = createDaysForNextMonth(startDate);
+      days.push(
+        ...daysInPreviousMonth,
+        ...daysInCurrentMonth,
+        ...daysInNextMonth
+      );
+      break;
+    case CalendarMode.Week:
+      const daysInCurrentWeek = createDaysForCurrentWeek(startDate);
+      days.push(...daysInCurrentWeek);
+      break;
+  }
+
+  return days;
 }

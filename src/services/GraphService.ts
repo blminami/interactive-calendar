@@ -5,14 +5,12 @@ import {
   PageCollection,
   PageIterator
 } from '@microsoft/microsoft-graph-client';
+import { CalendarMode } from '../calendar/Calendar.helper';
 
 var graph = require('@microsoft/microsoft-graph-client');
 
 function getAuthenticatedClient(accessToken: string) {
-  // Initialize Graph client
   const client = graph.Client.init({
-    // Use the provided access token to authenticate
-    // requests
     authProvider: (done: any) => {
       done(null, accessToken);
     }
@@ -36,22 +34,18 @@ export async function getUserCalendar(
   accessToken: string,
   timeZone: string,
   startDate: Moment,
-  type: 'week' | 'month'
+  type: CalendarMode
 ): Promise<Event[]> {
   const client = getAuthenticatedClient(accessToken);
 
   const startDateTime = startDate.format();
   let endDateTime;
-  if (type === 'month') {
+  if (type === CalendarMode.Month) {
     endDateTime = moment(startDate).add(1, 'month').format();
   } else {
     endDateTime = moment(startDate).add(7, 'day').format();
   }
 
-  // GET /me/calendarview?startDateTime=''&endDateTime=''
-  // &$select=subject,organizer,start,end
-  // &$orderby=start/dateTime
-  // &$top=50
   const response: PageCollection = await client
     .api('/me/calendarview')
     .header('Prefer', `outlook.timezone="${timeZone}"`)
@@ -61,12 +55,8 @@ export async function getUserCalendar(
     .get();
 
   if (response['@odata.nextLink']) {
-    // Presence of the nextLink property indicates more results are available
-    // Use a page iterator to get all results
     const events: Event[] = [];
 
-    // Must include the time zone header in page
-    // requests too
     const options: GraphRequestOptions = {
       headers: { Prefer: `outlook.timezone="${timeZone}"` }
     };
@@ -108,4 +98,13 @@ export async function createEvent(
     .header('Content-type', 'application/json')
     .post(event);
   return eventResponse;
+}
+
+export async function deleteEvent(
+  accessToken: string,
+  id: string
+): Promise<any> {
+  const client = getAuthenticatedClient(accessToken);
+
+  return await client.api(`/me/events/${id}`).delete();
 }
